@@ -1,7 +1,9 @@
+import os
 import random
-
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -91,6 +93,22 @@ def patch_delivers(id):
         return jsonify(response={"success": "Successfully updated the delivers service."}), 200
     else:
         return jsonify(error={"Not Found": "A restaurant with that id does not exist."}), 404
+
+
+@app.route("/delete/<int:id>", methods=["DELETE"])
+def delete_restaurant(id):
+    """Delete a restaurant from the database"""
+    api_key = request.args.get("api-key")
+    if api_key == os.environ.get('api-key'):
+        restaurant = Restaurants.query.get(id)
+        if restaurant:
+            db.session.delete(restaurant)
+            db.session.commit()
+            return jsonify(response={"success": "Deleted the restaurant from the database successfully."}), 200
+        else:
+            return jsonify(error={"Not Found": "A restaurant with that id was not found in the database."}), 404
+    else:
+        return jsonify(error={"Forbidden": "Invalid API Key, provide the correct api_key."}), 403
 
 
 if __name__ == '__main__':
