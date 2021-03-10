@@ -69,5 +69,16 @@ def all_restaurants():
     return jsonify(restaurants=[restaurant.to_dict() for restaurant in restaurants])
 
 
+@app.route("/search", methods=["GET"])
+def search_by_location():
+    """Search the database by location"""
+    query_location = request.args.get("location")
+    restaurant = Restaurants.query.filter_by(location=query_location).first()
+    if restaurant:
+        return jsonify(restaurant=restaurant.to_dict())
+    else:
+        return jsonify(error={"Not Found": "We don't have a restaurant at that location."})
+
+
 if __name__ == '__main__':
     app.run(debug=True)
