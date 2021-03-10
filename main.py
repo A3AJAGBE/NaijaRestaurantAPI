@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -30,6 +30,21 @@ db.create_all()
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route("/add", methods=["POST"])
+def post_new_cafe():
+    new_restaurant = Restaurants(
+        name=request.form.get("name"),
+        map_url=request.form.get("map_url"),
+        img_url=request.form.get("img_url"),
+        location=request.form.get("location"),
+        eat_in=bool(int(request.form.get("eat_in"))),
+        delivers=bool(int(request.form.get("delivers"))),
+    )
+    db.session.add(new_restaurant)
+    db.session.commit()
+    return jsonify(response={"success": "Successfully added the new restaurant."})
 
 
 if __name__ == '__main__':
