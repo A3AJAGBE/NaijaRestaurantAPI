@@ -43,17 +43,21 @@ def index():
 @app.route("/add", methods=["POST"])
 def new_restaurant():
     """Add a new restaurant."""
-    add_restaurant = Restaurants(
-        name=request.form.get("name"),
-        map_url=request.form.get("map_url"),
-        img_url=request.form.get("img_url"),
-        location=request.form.get("location"),
-        eat_in=bool(int(request.form.get("eat_in"))),
-        delivers=bool(int(request.form.get("delivers"))),
-    )
-    db.session.add(add_restaurant)
-    db.session.commit()
-    return jsonify(response={"success": "Successfully added the new restaurant."})
+    api_key = request.args.get("api-key")
+    if api_key == os.environ.get('api-key'):
+        add_restaurant = Restaurants(
+            name=request.form.get("name"),
+            map_url=request.form.get("map_url"),
+            img_url=request.form.get("img_url"),
+            location=request.form.get("location"),
+            eat_in=bool(int(request.form.get("eat_in"))),
+            delivers=bool(int(request.form.get("delivers"))),
+        )
+        db.session.add(add_restaurant)
+        db.session.commit()
+        return jsonify(response={"success": "Successfully added the new restaurant."})
+    else:
+        return jsonify(error={"Forbidden": "Invalid API Key, provide the correct api_key."}), 403
 
 
 @app.route("/random", methods=["GET"])
@@ -85,14 +89,18 @@ def search_by_location():
 @app.route("/update_delivers/<int:id>", methods=["PATCH"])
 def patch_delivers(id):
     """Update the delivers field"""
-    update_delivers = request.args.get("delivers")
-    restaurant = Restaurants.query.get(id)
-    if restaurant:
-        restaurant.delivers = bool(int(update_delivers))
-        db.session.commit()
-        return jsonify(response={"success": "Successfully updated the delivers service."}), 200
+    api_key = request.args.get("api-key")
+    if api_key == os.environ.get('api-key'):
+        update_delivers = request.args.get("delivers")
+        restaurant = Restaurants.query.get(id)
+        if restaurant:
+            restaurant.delivers = bool(int(update_delivers))
+            db.session.commit()
+            return jsonify(response={"success": "Successfully updated the delivers service."}), 200
+        else:
+            return jsonify(error={"Not Found": "A restaurant with that id does not exist."}), 404
     else:
-        return jsonify(error={"Not Found": "A restaurant with that id does not exist."}), 404
+        return jsonify(error={"Forbidden": "Invalid API Key, provide the correct api_key."}), 403
 
 
 @app.route("/delete/<int:id>", methods=["DELETE"])
@@ -106,7 +114,7 @@ def delete_restaurant(id):
             db.session.commit()
             return jsonify(response={"success": "Deleted the restaurant from the database successfully."}), 200
         else:
-            return jsonify(error={"Not Found": "A restaurant with that id was not found in the database."}), 404
+            return jsonify(error={"Not Found": "A restaurant with that id does not exist."}), 404
     else:
         return jsonify(error={"Forbidden": "Invalid API Key, provide the correct api_key."}), 403
 
