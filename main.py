@@ -25,6 +25,10 @@ class Restaurants(db.Model):
     def __repr__(self):
         return f'Restaurant Name: {self.name}'
 
+    def to_dict(self):
+        # Dictionary Comprehension to loop through the table
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
 
 db.create_all()
 
@@ -36,6 +40,7 @@ def index():
 
 @app.route("/add", methods=["POST"])
 def new_restaurant():
+    """Add a new restaurant."""
     add_restaurant = Restaurants(
         name=request.form.get("name"),
         map_url=request.form.get("map_url"),
@@ -51,17 +56,17 @@ def new_restaurant():
 
 @app.route("/random", methods=["GET"])
 def random_restaurant():
+    """A random restaurant is retrieve from the database."""
     restaurants = Restaurants.query.all()
     restaurant = random.choice(restaurants)
-    return jsonify(restaurant={
-        "id": restaurant.id,
-        "name": restaurant.name,
-        "map_url": restaurant.map_url,
-        "img_url": restaurant.img_url,
-        "location": restaurant.location,
-        "eat_in": restaurant.eat_in,
-        "delivers": restaurant.delivers,
-    })
+    return jsonify(cafe=restaurant.to_dict())
+
+
+@app.route("/all", methods=["GET"])
+def all_restaurants():
+    """Returns all the restaurants in the database."""
+    restaurants = Restaurants.query.all()
+    return jsonify(restaurants=[restaurant.to_dict() for restaurant in restaurants])
 
 
 if __name__ == '__main__':
