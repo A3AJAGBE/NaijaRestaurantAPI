@@ -80,5 +80,18 @@ def search_by_location():
         return jsonify(error={"Not Found": "We don't have a restaurant at that location."})
 
 
+@app.route("/update_delivers/<int:id>", methods=["PATCH"])
+def patch_delivers(id):
+    """Update the delivers field"""
+    update_delivers = request.args.get("delivers")
+    restaurant = Restaurants.query.get(id)
+    if restaurant:
+        restaurant.delivers = bool(int(update_delivers))
+        db.session.commit()
+        return jsonify(response={"success": "Successfully updated the delivers service."}), 200
+    else:
+        return jsonify(error={"Not Found": "A restaurant with that id does not exist."}), 404
+
+
 if __name__ == '__main__':
     app.run(debug=True)
