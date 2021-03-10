@@ -1,3 +1,5 @@
+import random
+
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
@@ -33,8 +35,8 @@ def index():
 
 
 @app.route("/add", methods=["POST"])
-def post_new_cafe():
-    new_restaurant = Restaurants(
+def new_restaurant():
+    add_restaurant = Restaurants(
         name=request.form.get("name"),
         map_url=request.form.get("map_url"),
         img_url=request.form.get("img_url"),
@@ -42,9 +44,24 @@ def post_new_cafe():
         eat_in=bool(int(request.form.get("eat_in"))),
         delivers=bool(int(request.form.get("delivers"))),
     )
-    db.session.add(new_restaurant)
+    db.session.add(add_restaurant)
     db.session.commit()
     return jsonify(response={"success": "Successfully added the new restaurant."})
+
+
+@app.route("/random", methods=["GET"])
+def random_restaurant():
+    restaurants = Restaurants.query.all()
+    restaurant = random.choice(restaurants)
+    return jsonify(restaurant={
+        "id": restaurant.id,
+        "name": restaurant.name,
+        "map_url": restaurant.map_url,
+        "img_url": restaurant.img_url,
+        "location": restaurant.location,
+        "eat_in": restaurant.eat_in,
+        "delivers": restaurant.delivers,
+    })
 
 
 if __name__ == '__main__':
